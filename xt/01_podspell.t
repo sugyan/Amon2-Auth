@@ -47,5 +47,7 @@ APIs
 github
 loctouch
 LocTouch
+nakamap
+Nakamap
 facebook
 SNS
