@@ -14,14 +14,14 @@ our $VERSION = '0.01';
 sub moniker { 'nakamap' }
 
 has client_id => (
-	is => 'ro',
-	isa => 'Str',
-	required => 1,
+    is => 'ro',
+    isa => 'Str',
+    required => 1,
 );
 has client_secret => (
-	is => 'ro',
-	isa => 'Str',
-	required => 1,
+    is => 'ro',
+    isa => 'Str',
+    required => 1,
 );
 
 has user_info => (
@@ -31,50 +31,50 @@ has user_info => (
 );
 
 has ua => (
-	is => 'ro',
-	isa => 'LWP::UserAgent',
-	lazy => 1,
-	default => sub {
-		my $ua = LWP::UserAgent->new(
+    is => 'ro',
+    isa => 'LWP::UserAgent',
+    lazy => 1,
+    default => sub {
+        my $ua = LWP::UserAgent->new(
             ssl_opts => { verify_hostname => 0 },
             agent => "Amon2::Auth/$Amon2::Auth::VERSION"
         );
-	},
+    },
 );
 
 has authorize_url => (
-	is => 'ro',
-	isa => 'Str',
-	default => 'https://nakamap.com/dialog/oauth',
+    is => 'ro',
+    isa => 'Str',
+    default => 'https://nakamap.com/dialog/oauth',
 );
 has access_token_url => (
-	is => 'ro',
-	isa => 'Str',
-	default => 'https://thanks.nakamap.com/oauth/access_token',
+    is => 'ro',
+    isa => 'Str',
+    default => 'https://thanks.nakamap.com/oauth/access_token',
 );
 has redirect_uri => (
-	is => 'ro',
-	isa => 'Str',
-	required => 1,
+    is => 'ro',
+    isa => 'Str',
+    required => 1,
 );
 
 sub auth_uri {
     my ($self, $c, $callback_uri) = @_;
-	$callback_uri or die "Missing mandatory parameter: callback_uri";
-	if ($self->redirect_uri ne $callback_uri) {
-		die "redirect uri missmatch: " . join(', ', $self->redirect_uri, $callback_uri);
-	}
+    $callback_uri or die "Missing mandatory parameter: callback_uri";
+    if ($self->redirect_uri ne $callback_uri) {
+        die "redirect uri missmatch: " . join(', ', $self->redirect_uri, $callback_uri);
+    }
 
-	my $redirect_uri = URI->new($self->authorize_url);
-	my %params;
-	$params{redirect_uri} = $self->redirect_uri;
-	$params{response_type} = 'code';
-	for (qw(client_id)) {
-		next unless defined $self->$_;
-		$params{$_} = $self->$_;
-	}
-	$redirect_uri->query_form(%params);
-	return $redirect_uri->as_string;
+    my $redirect_uri = URI->new($self->authorize_url);
+    my %params;
+    $params{redirect_uri} = $self->redirect_uri;
+    $params{response_type} = 'code';
+    for (qw(client_id)) {
+        next unless defined $self->$_;
+        $params{$_} = $self->$_;
+    }
+    $redirect_uri->query_form(%params);
+    return $redirect_uri->as_string;
 }
 
 sub callback {
@@ -82,17 +82,17 @@ sub callback {
 
     my $code = $c->req->param('code') or die "Cannot get a 'code' parameter";
     my %params = (code => $code);
-	# grant_type=authorization_code&client_id=CLIENT_ID&client_secret=CLIENT_SECRET&code=CODE&redirect_uri=REDIRECT_URI
-	$params{grant_type} = 'authorization_code';
+    # grant_type=authorization_code&client_id=CLIENT_ID&client_secret=CLIENT_SECRET&code=CODE&redirect_uri=REDIRECT_URI
+    $params{grant_type} = 'authorization_code';
     $params{client_id} = $self->client_id;
     $params{client_secret} = $self->client_secret;
     $params{redirect_uri} = $self->redirect_uri;
     my $res = $self->ua->post($self->access_token_url, \%params);
     $res->is_success or die "Cannot authenticate: " . $res->content;
     my $dat = decode_json($res->decoded_content);
-	if (my $err = $dat->{error}) {
-		return $callback->{on_error}->($err);
-	}
+    if (my $err = $dat->{error}) {
+        return $callback->{on_error}->($err);
+    }
     my $access_token = $dat->{access_token} or die "Cannot get a access_token";
     my @args = ($access_token);
     if ($self->user_info) {
@@ -101,7 +101,7 @@ sub callback {
         my $dat = decode_json($res->decoded_content);
         push @args, $dat;
     }
-	return $callback->{on_finished}->( @args );
+    return $callback->{on_finished}->( @args );
 }
 
 1;
